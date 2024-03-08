@@ -1,20 +1,18 @@
-from Data.database_handler import DatabaseHandler
+from Data.database_handler_MySql import DatabaseHandler
 from getpass import getpass
 import gestion
 
-database_handler = DatabaseHandler("stock.db")
+database_handler = DatabaseHandler("bank_iav_db")
 
 def register():
 	print("---Register---")
+	nom = input("nom : ")
+	prenom = input("prenom : ")
 	username = input("Username : ")
+	email = input("email : ")
 	password = input("Password : ")
 
-	database_handler.create_person(username, password)
-	magasin = database_handler.take_id()
-	for elem in magasin:
-		magasin = elem["MAX(id)"]
-	magasin = f"magasin_{str(magasin)}"
-	database_handler.create_table(magasin=(magasin))
+	database_handler.create_user(nom,prenom,username,email, password)
 	menu_connected(username)
 
 def login():
@@ -22,7 +20,7 @@ def login():
 	username = input("Username : ")
 	password = input("Password : ")
 
-	if database_handler.user_exist_whith(username) and database_handler.password_for(username) == password:
+	if database_handler.user_exist_whith(username) and database_handler.get_password(username) == password:
 		print("login")
 		menu_connected(username)
 	else:
@@ -40,19 +38,17 @@ def changer_mdp(username: str):
 		print("Les mots de passe ne corresponde pas")
 
 def menu_connected(username: str):
-	print("Vous êtes connecter a votre magasin")
-	id = database_handler.take_id_mag(username)
-	magasin = f"magasin_{id}"
-	gestion.main(magasin)
+	print("*************Bienvenu a votre compte bancaire*******************************")
+	id = database_handler.get_id_user(username)
+	gestion.main(id)
 
 def menu_not_connected():
 	while True:
-		print("Bienveenue sur le stock, veuiller vous connecter")
+		print("Bienveenue sur le espace Bank_IAV, veuiller vous connecter")
 		print("Choisissez une option")
 		print("1. Login")
 		print("2. S'enregistrer")
 		choix = int(input())
-
 		if choix == 1:
 			login()
 		if choix == 2:

@@ -11,7 +11,6 @@ def register():
 	username = input("Username : ")
 	email = input("email : ")
 	password = input("Password : ")
-
 	database_handler.create_user(nom,prenom,username,email, password)
 	menu_connected(username)
 
@@ -19,7 +18,6 @@ def login():
 	print("---login---")
 	username = input("Username : ")
 	password = input("Password : ")
-
 	if database_handler.user_exist_whith(username) and database_handler.get_password(username) == password:
 		print("login")
 		menu_connected(username)

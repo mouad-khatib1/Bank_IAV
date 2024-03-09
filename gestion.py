@@ -61,17 +61,20 @@ def effectuer_virement(user_id):
 		i+=1
 	choix = int(input())
 	montant = int(input("entre le montant : "))
-	receiver_user_id = beneficiers[choix-1][5]
+	accountid_recepteur = beneficiers[choix-1][6]
+	accountid_emeteur =  database_handler.get_account_id(user_id)
 	is_solde_sufisant = database_handler.verif_solde(user_Id,montant)
 	if is_solde_sufisant :
 		i = 3
 		while (i>0):
 			password = input("entre le mot de passe : ")
 			if database_handler.get_password_by_id(user_id) == password: 
-				is_incremented =database_handler.increment_solde(receiver_user_id,montant)
+				is_incremented =database_handler.increment_solde(accountid_recepteur,montant)
 				is_decremented = database_handler.decrement_solde(user_id,montant)
 				#add to transactions 
 				if is_incremented and is_decremented:
+					type_transaction = "virement"
+					database_handler.ajouter_transaction(type_transaction,montant,accountid_emeteur,accountid_recepteur)
 					print("**********Le virement a été bien effectuer****************")
 					break
 			else:
@@ -88,6 +91,97 @@ def taux_interet():
 	    print(type_compte , " : ",taux1)
 	    print("------------------------------------")
 
+def affiche_clients():
+	print("---afficher les beneficier---")
+	clients = database_handler.get_clients()
+	i = 1 
+	for client in clients:
+	    id, name, prename, user_name,email,password,role = client
+	    print(i,". client_",i)
+	    print("Name : ", name)
+	    print("prename : ", prename)
+	    print("Username : ", user_name)
+	    print("Email : ", email)
+	    print("password : ", password)
+	    print("role : ", role) 
+	    print("------------------------------------")
+	    print("")
+	    i+=1
+	choix = int(input("choisir un client : "))
+	if(choix <= i):
+		userid = clients[choix-1][0]
+		cheque = database_handler.get_chèque(userid)
+		epargne = database_handler.get_epargne(userid)
+		id_compte, type, solde, id_user ,rib= epargne
+		print(f"type: {type}")
+		print(f"RIB : {rib}")
+		print(f"solde: {solde} Dh")
+		print("------------------------------------")
+		id_compte1, type1, solde1, id_user1 ,rib1= cheque
+		print(f"type: {type1}")
+		print(f"RIB : {rib1}")
+		print(f"solde: {solde1} Dh")
+		return
+	else : 
+		print("utilisateur introuvable ")
+		return 
+
+def rechercher_client():
+	print("-------------------------------------")
+	username = input("rechercher par username  : ")
+	user = database_handler.get_user_by_username(username)
+	if user is not None : 
+		id, name, prename, user_name,email,password,role = user
+		print("Name : ", name)
+		print("prename : ", prename)
+		print("Username : ", user_name)
+		print("Email : ", email)
+		print("password : ", password)
+		print("role : ", role) 
+		print("------------------------------------")
+		return
+	else : 
+		print("username introuvable")
+		rechercher_client()
+
+def ajouter_client():
+	print("----------------creation d'utilisateur ---------------------")
+	nom = input("nom : ")
+	prenom = input("prenom : ")
+	username = input("Username : ")
+	email = input("email : ")
+	password = input("Password : ")
+	database_handler.create_user(nom,prenom,username,email, password)
+	user_id = database_handler.get_id_user(username)
+	print("------------------creation de compte -------------------")
+	print("1. compte epargne")
+	print("2. compte chéque")
+	choix = input("choisir type de compte : ")
+	solde = int(input("solde : "))
+	rib = input("RIB : ")
+	if choix == 1 : 
+		type_compte = "épargne"
+	elif choix == 2 :
+		type_compte = "chèque"
+	else : 
+		return
+	database_handler.create_account(type_compte,solde,userid,rib)
+
+def afficher_transaction():
+	transactions = database_handler.get_transaction()
+	print("transaction")
+	print("ID | Type Transaction | Montant | Date Transaction | ID Compte Emetteur | ID Compte Recepteur")
+	print("-" * 100)
+	for row in transactions:
+	    print("{:<3}| {:<17}| {:<8}| {:<17}| {:<19}| {:<19}".format(*row))
+	    print("-" * 100)
+
+	print("")
+	print("")
+	return 
+
+
+
 def menu_de_base(user_id):
 	while True:
 	    role = database_handler.check_role(user_id)
@@ -98,8 +192,20 @@ def menu_de_base(user_id):
 		    print("1. Afficher tous les client")
 		    print("2. rechercher un client")
 		    print("3. ajouter client")
+		    print("4. afficher transactions")
+		    print("5. deconnecter")
 		    choix = int(input())
-
+		    if choix == 1:
+		        affiche_clients()
+		    elif choix == 2:
+		    	rechercher_client()
+		    elif choix == 3:
+			    ajouter_client() 
+		    elif choix == 4:
+			    afficher_transaction()
+		    elif choix == 5:
+		    	print("---deconnection---")
+		    	return
 		
 	    elif role == "client":
 		    print("-------------------------------------")
